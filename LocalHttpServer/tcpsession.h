@@ -4,6 +4,8 @@
 #include <memory>
 #include <utility>
 #include <boost/asio.hpp>
+#include "packetparser.h"
+#include "packet.h"
 
 using boost::asio::ip::tcp;
 
@@ -14,9 +16,11 @@ public:
 	tcpsession(tcp::socket socket);
 	~tcpsession();
 	void begin_read();
+	void handlepacket(packet);
 
 private:
 	tcp::socket _socket;
 	char _data[1024];
+	packetparser _parser;
 };
 

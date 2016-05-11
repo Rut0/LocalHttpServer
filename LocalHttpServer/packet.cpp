@@ -37,3 +37,20 @@ const char* packet::serialize()
 {
 	return{ '\0' };
 }
+
+std::string packet::debug()
+{
+	std::string msg = "Command: " + std::string(command);
+	msg += "\n";
+	msg += "Header Count: " + headers.size();
+	msg += "\n";
+	if (hasheader("CONTENT-LENGTH"))
+	{
+		msg += "Content-Length: " + getheader("CONTENT-LENGTH");
+		msg += "\n";
+		msg += "Payload Size: " + strlen(payload);
+		msg += "\n";
+	}
+	msg += "---";
+	return msg;
+};

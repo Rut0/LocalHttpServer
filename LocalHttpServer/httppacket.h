@@ -6,7 +6,7 @@ class httppacket
 public:
 	httppacket();
 	~httppacket();
-
+	
 protected:
 	double httpVersion;
 	std::string method;

@@ -5,7 +5,7 @@
 tcpserver::tcpserver(boost::asio::io_service& io_serv, int port)
 	: _acceptor(io_serv, tcp::endpoint(tcp::v4(), port)), _socket(io_serv)
 {
-	util::log("Begin accept");
+	util::log("Begin accept on port: " + std::to_string(port));
 	begin_accept();
 }
 

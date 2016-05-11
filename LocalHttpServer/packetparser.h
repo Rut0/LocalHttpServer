@@ -2,16 +2,15 @@
 #include "packet.h"
 #include <vector>
 #include <algorithm>
+#include <sstream>
+#include <iostream>
 #include <boost/algorithm/string.hpp>
-
-typedef void(*packethandler)(packet);
 
 class packetparser
 {
 public:
-	packetparser(packethandler handler)
+	packetparser()
 	{
-		_handler = handler;
 		_packet.clear();
 		_status = command;
 	};
@@ -31,15 +30,59 @@ private:
 			if (_status == command) 
 			{
 				_packet.command = boost::algorithm::to_upper_copy(_buffer.substr(0, index)).c_str();
-				_buffer.erase(0, index + 2);
-				parse();
+				_buffer.erase(0, index + 2); // Erase command from buffer
+				_status = header;
 			}
-			else if (_status == header)
+			if (_status == header)
 			{
-
+				int eoh = 0;
+				if ((eoh = _buffer.find("\r\n\r\n")) != std::string::npos)
+				{
+					std::string headers = _buffer.substr(0, eoh);
+					_buffer.erase(0, eoh + 4); // Erase headers from buffer
+					// Parse header
+					int hindex;
+					int del;
+					std::string header;
+					while (headers.length() > 0)
+					{
+						hindex = _buffer.find("\r\n");
+						header = headers.substr(0, hindex);
+						headers.erase(0, hindex + 2);
+						del = header.find(": ");
+						_packet.addheader(boost::algorithm::to_upper_copy(header.substr(0, del)), header.substr(del + 2));
+					}
+					// Erase header-payload delimeter
+					_buffer.erase(0, 2);
+					_status = command;
+					if (_packet.hasheader("CONTENT-LENGTH"))
+					{
+						_contentlength = atoi(_packet.getheader("CONTENT-LENGTH").c_str());
+						_status = payload;
+					}
+					else
+					{
+						finalize();
+					}
+				}
 			}
+			if (_status == payload)
+			{
+				if (_buffer.length() < _contentlength) return;
+				_packet.payload = _buffer.substr(0, _contentlength).c_str();
+				_buffer.erase(0, _contentlength);
+				_status = command;
+				finalize();
+			}
+			parse();
 		}
 	}
+
+	void finalize()
+	{
+		//_session.handlepacket(_packet);
+		_packet.clear();
+	};
 
 	enum parsestatus {
 		command,
@@ -48,8 +91,7 @@ private:
 	};
 
 	packet _packet;
-	size_t contentlength = 0;
+	size_t _contentlength = 0;
 	std::string _buffer;
-	packethandler _handler;
 	parsestatus _status;
 };

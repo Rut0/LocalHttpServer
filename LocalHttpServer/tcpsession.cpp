@@ -5,6 +5,7 @@
 tcpsession::tcpsession(tcp::socket socket)
 	: _socket(std::move(socket))
 {
+	
 }
 
 
@@ -22,9 +23,13 @@ void tcpsession::begin_read()
 		{
 			// No error, message received
 			util::log("message received:");
-			util::log(_data);
-
+			
 			begin_read();
 		}
 	});
+}
+
+void tcpsession::handlepacket(packet p)
+{
+	std::cout << p.debug() << std::endl;
 }
