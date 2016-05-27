@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <sstream>
 #include <iostream>
+#include <functional>
 #include <boost/algorithm/string.hpp>
 
 class packetparser
@@ -14,13 +15,14 @@ public:
 		_packet.clear();
 		_status = command;
 	};
-	void buffer(const char* data)
+	void buffer(std::string data)
 	{
-		if (strlen(data) > 0)
+		if (data.size() > 0)
 			_buffer += data;
 		parse();
 	};
 
+	std::function<void(packet)> handler;
 private:
 	void parse()
 	{
@@ -29,7 +31,7 @@ private:
 		{
 			if (_status == command) 
 			{
-				_packet.command = boost::algorithm::to_upper_copy(_buffer.substr(0, index)).c_str();
+				_packet.command = boost::algorithm::to_upper_copy(_buffer.substr(0, index));
 				_buffer.erase(0, index + 2); // Erase command from buffer
 				_status = header;
 			}
@@ -38,15 +40,15 @@ private:
 				int eoh = 0;
 				if ((eoh = _buffer.find("\r\n\r\n")) != std::string::npos)
 				{
-					std::string headers = _buffer.substr(0, eoh);
-					_buffer.erase(0, eoh + 4); // Erase headers from buffer
+					std::string headers = _buffer.substr(0, eoh + 2);
+					_buffer.erase(0, eoh + 2); // Erase headers from buffer
 					// Parse header
 					int hindex;
 					int del;
 					std::string header;
 					while (headers.length() > 0)
 					{
-						hindex = _buffer.find("\r\n");
+						hindex = headers.find("\r\n");
 						header = headers.substr(0, hindex);
 						headers.erase(0, hindex + 2);
 						del = header.find(": ");
@@ -80,7 +82,7 @@ private:
 
 	void finalize()
 	{
-		//_session.handlepacket(_packet);
+		handler(_packet);
 		_packet.clear();
 	};
 
@@ -89,7 +91,6 @@ private:
 		header,
 		payload
 	};
-
 	packet _packet;
 	size_t _contentlength = 0;
 	std::string _buffer;

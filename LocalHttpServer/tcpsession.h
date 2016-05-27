@@ -16,6 +16,7 @@ public:
 	tcpsession(tcp::socket socket);
 	~tcpsession();
 	void begin_read();
+	typedef void(*handler)(packet* param);
 	void handlepacket(packet);
 
 private:

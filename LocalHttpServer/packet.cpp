@@ -13,9 +13,9 @@ packet::~packet()
 
 void packet::clear()
 {
-	command = { '\0' };
+	command = "";
 	headers.clear();
-	payload = { '\0' };
+	payload = "";
 }
 
 void packet::addheader(std::string key, std::string value)
@@ -33,22 +33,24 @@ std::string packet::getheader(std::string key)
 	return headers[key];
 }
 
-const char* packet::serialize()
+std::string packet::serialize()
 {
-	return{ '\0' };
+	return "";
 }
 
 std::string packet::debug()
 {
-	std::string msg = "Command: " + std::string(command);
+	std::string msg = "---\nCommand: " + std::string(command);
 	msg += "\n";
-	msg += "Header Count: " + headers.size();
+	msg += "Header Count: ";
+	msg += std::to_string(headers.size());
 	msg += "\n";
 	if (hasheader("CONTENT-LENGTH"))
 	{
 		msg += "Content-Length: " + getheader("CONTENT-LENGTH");
 		msg += "\n";
-		msg += "Payload Size: " + strlen(payload);
+		msg += "Payload Size: ";
+		msg += std::to_string(payload.size());
 		msg += "\n";
 	}
 	msg += "---";

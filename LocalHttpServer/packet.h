@@ -9,10 +9,10 @@ public:
 	void addheader(std::string, std::string);
 	bool hasheader(std::string);
 	std::string getheader(std::string);
-	const char* serialize();
+	std::string serialize();
 	std::string debug();
-	const char* command;
+	std::string command;
 	std::map<std::string, std::string> headers;
-	const char* payload;
+	std::string payload;
 };
 
